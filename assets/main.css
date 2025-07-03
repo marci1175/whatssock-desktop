@@ -45,13 +45,24 @@ button {
   background-color: #0f0f0f;
   transition: border-color 0.25s;
   box-shadow: 0px 0px 10px 4px rgba(149, 149, 149, 0.2);
+  text-shadow: 0px 0px 10px 4px rgba(149, 149, 149, 0.2);
   animation-name: deselected_input;
   animation-duration: 200ms;
   animation-fill-mode: backwards;
   outline: none;
 }
 
-input:hover, input:focus, button:hover {
+button {
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  transition: color 0.1s ease;
+}
+
+button:active {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+input:hover, input:hover, button:hover {
   animation-name: selected_input;
   animation-duration: 300ms;
   animation-fill-mode: forwards;

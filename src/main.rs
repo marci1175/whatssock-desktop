@@ -1,6 +1,8 @@
 use core::panic::PanicMessage;
 
 use dioxus::prelude::*;
+use reqwest::Client;
+use whatssock_desktop::api_requests::fetch_login;
 
 const MAIN_CSS: Asset = asset!("/assets/main.css");
 
@@ -18,6 +20,9 @@ fn App() -> Element {
 
 #[component]
 pub fn LoginPage() -> Element {
+    let mut client = use_signal(|| Client::new());
+    let mut username = use_signal(|| String::new());
+    let mut password = use_signal(|| String::new());
     rsx! {
         div { 
             id: "login_page_container",
@@ -37,6 +42,7 @@ pub fn LoginPage() -> Element {
                 div {
                     id: "username_field",
                     input {
+                        oninput: move |event| username.set(event.value()),
                         placeholder: "Username",
                     }
                 }
@@ -44,10 +50,17 @@ pub fn LoginPage() -> Element {
                 div {  
                     id: "password_field",
                     input {
+                        oninput: move |event| password.set(event.value()),
                         placeholder: "Password",
                         r#type: "password",
                     }
                 }
+
+                button { onclick: move |event| {
+                    use_future(move || async move {
+                        fetch_login(client(), username.to_string(), password.to_string()).await.unwrap();
+                    });
+                }, "Login" }
             }
         }
     }
