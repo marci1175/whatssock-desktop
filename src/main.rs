@@ -94,9 +94,9 @@ pub fn LoginPage() -> Element {
                 }, "Login" }
 
                 {
-                    if let Some(error_msg) = dbg!(&*last_login_attempt_result.read()) {
+                    if let Some(error_msg) = &*last_login_attempt_result.read() {
                         rsx! {
-                            text {
+                            div {
                                 id: "login_error",
                                 {format!("An error occured while attempting to login: {}", error_msg)}
                             }
