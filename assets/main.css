@@ -10,23 +10,36 @@ body {
 }
 
 #main_title {
-    text-align: center;
-    font-size: xx-large;
+  text-align: center;
+  text-shadow:
+    0 0 5px rgba(120, 120, 120, 0.9),
+    0 0 10px rgba(120, 120, 120, 0.9),
+    0 0 20px rgba(120, 120, 120, 0.2);
+  font-size: xx-large;
+  animation-name: dehovered_title;
+  animation-duration: 300ms;
+  animation-fill-mode: backwards;
+}
+
+#main_title:hover {
+  animation-name: hovered_title;
+  animation-duration: 300ms;
+  animation-fill-mode: forwards;
 }
 
 #main_title_footer {
-    text-align: center;
-    font-size: small;
+  text-align: center;
+  font-size: small;
 }
 
 #user_input_fields {
-    padding-top: 10px;
-    display: flex;
-    gap: 20px;
-    flex-direction: column;
-    align-items: center;     /* Center horizontally */
-    justify-content: center; /* Center vertically if height is set */
-    margin: auto;
+  padding-top: 10px;
+  display: flex;
+  gap: 20px;
+  flex-direction: column;
+  align-items: center;     /* Center horizontally */
+  justify-content: center; /* Center vertically if height is set */
+  margin: auto;
 }
 
 #failed {
@@ -104,3 +117,35 @@ input:hover, input:hover, button:hover {
     box-shadow: 0px 0px 10px 4px rgba(183, 183, 183,  0.5);
   }
 }
+
+@keyframes hovered_title {
+  from {
+    text-shadow:
+    0 0 5px rgba(120, 120, 120, 0.9),
+    0 0 10px rgba(120, 120, 120, 0.9),
+    0 0 20px rgba(120, 120, 120, 0.2);
+  }
+  to {
+    text-shadow:
+    0 0 5px rgba(170, 170, 170, 0.9),
+    0 0 10px rgba(170, 170, 170, 0.9),
+    0 0 20px rgba(170, 170, 170, 0.2);
+  }
+}
+
+@keyframes dehovered_title {
+  to {
+    text-shadow:
+    0 0 5px rgba(120, 120, 120, 0.9),
+    0 0 10px rgba(120, 120, 120, 0.9),
+    0 0 20px rgba(120, 120, 120, 0.2);
+  }
+  from {
+    text-shadow:
+    0 0 5px rgba(170, 170, 170, 0.9),
+    0 0 10px rgba(170, 170, 170, 0.9),
+    0 0 20px rgba(170, 170, 170, 0.2);
+  }
+}
+
+

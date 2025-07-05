@@ -8,7 +8,11 @@ const MAIN_CSS: Asset = asset!("/assets/main.css");
 fn main() -> anyhow::Result<()> {
     // Initalize a local file for in the user's folder
     let path = PathBuf::from(format!("{}/.whatssock", std::env::var("USERPROFILE").unwrap()));
-    std::fs::create_dir(path)?;
+
+    // Only attempt to create the folder if it doesnt exist yet
+    if let Err(err) = std::fs::read_dir(&path) {
+        std::fs::create_dir(path)?;
+    }
     
     dioxus::launch(App);
     
