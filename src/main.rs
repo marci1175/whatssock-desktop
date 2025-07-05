@@ -1,8 +1,12 @@
 use core::panic::PanicMessage;
+use std::format;
 
-use dioxus::prelude::*;
+use dioxus::{
+    logger::{self, tracing},
+    prelude::*,
+};
 use reqwest::Client;
-use whatssock_desktop::api_requests::fetch_login;
+use whatssock_desktop::HttpClient;
 
 const MAIN_CSS: Asset = asset!("/assets/main.css");
 
@@ -20,11 +24,25 @@ fn App() -> Element {
 
 #[component]
 pub fn LoginPage() -> Element {
-    let mut client = use_signal(|| Client::new());
+    let client = use_signal(|| {
+        HttpClient::new(Client::new(), {
+            #[cfg(debug_assertions)]
+            {
+                String::from("[::1]")
+            }
+            #[cfg(not(debug_assertions))]
+            {
+                String::from("whatssock.com")
+            }
+        })
+    });
+
+    let mut last_login_attempt_result: Signal<Option<String>> = use_signal(|| None);
+
     let mut username = use_signal(|| String::new());
     let mut password = use_signal(|| String::new());
     rsx! {
-        div { 
+        div {
             id: "login_page_container",
             div {
                 id: "main_title",
@@ -47,7 +65,7 @@ pub fn LoginPage() -> Element {
                     }
                 }
 
-                div {  
+                div {
                     id: "password_field",
                     input {
                         oninput: move |event| password.set(event.value()),
@@ -58,9 +76,46 @@ pub fn LoginPage() -> Element {
 
                 button { onclick: move |event| {
                     use_future(move || async move {
-                        fetch_login(client(), username.to_string(), password.to_string()).await.unwrap();
+                        match client.read().fetch_login(username.to_string(), password.to_string()).await {
+                            Ok(response) => {
+                                tracing::info!("{}", response.text().await.unwrap())
+                            },
+                            Err(err) => {
+                                tracing::error!("Error occured when logging in: {}", err.to_string());
+
+                                last_login_attempt_result.set(Some(err.to_string()));
+
+                                return Err(err);    
+                            },
+                        }
+
+                        Ok(())
                     });
                 }, "Login" }
+
+                {
+                    if let Some(error_msg) = dbg!(&*last_login_attempt_result.read()) {
+                        rsx! {
+                            text {
+                                id: "login_error",
+                                {format!("An error occured while attempting to login: {}", error_msg)}
+                            }
+                        }
+                    }
+                    else {
+                        rsx!()
+                    }
+                }
+            }
+        }
+
+        ErrorBoundary {
+            handle_error: |_| {
+                rsx! {
+                    div {
+                        "Oops, we encountered an error. Please report this to the developer of this application"
+                    }
+                }
             }
         }
     }

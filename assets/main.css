@@ -1,5 +1,5 @@
 body {
-    background-color: #000000;
+    /* background-color: #000000; */
     color: #a3a3a3;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     margin: 20px;
@@ -27,6 +27,10 @@ body {
     align-items: center;     /* Center horizontally */
     justify-content: center; /* Center vertically if height is set */
     margin: auto;
+}
+
+#login_error {
+  color: black;
 }
 
 label {
