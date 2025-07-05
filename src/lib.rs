@@ -1,7 +1,9 @@
 use reqwest::Client;
 
 pub mod api_requests;
+pub mod ui;
 
+#[derive(Debug, Clone)]
 pub struct HttpClient {
     pub client: Client,
     pub base_url: String,

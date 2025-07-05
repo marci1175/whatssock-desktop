@@ -29,8 +29,22 @@ body {
     margin: auto;
 }
 
-#login_error {
+#failed {
   color: red;
+  font-size: inherit;
+}
+
+#attempted {
+color: grey;
+  font-size: inherit;
+}
+
+#succeeded {
+color: rgb(0, 255, 0);
+  font-size: inherit;
+}
+
+#login_result {
   font-size: small;
 }
 
