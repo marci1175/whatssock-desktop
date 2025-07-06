@@ -27,7 +27,7 @@ pub fn Login() -> Element {
         HttpClient::new(Client::new(), {
             #[cfg(debug_assertions)]
             {
-                String::from("http://[::1]")
+                String::from("http://[::1]:3004")
             }
             #[cfg(not(debug_assertions))]
             {

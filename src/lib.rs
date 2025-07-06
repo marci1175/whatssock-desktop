@@ -14,3 +14,9 @@ impl HttpClient {
         Self { client, base_url }
     }
 }
+
+#[derive(serde::Serialize, serde::Deserialize)]
+pub struct LoginRequest {
+    username: String,
+    password: String,
+}

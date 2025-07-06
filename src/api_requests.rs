@@ -1,12 +1,6 @@
-use crate::HttpClient;
+use crate::{HttpClient, LoginRequest};
 use anyhow::ensure;
 use reqwest::Response;
-
-#[derive(serde::Serialize, serde::Deserialize)]
-pub struct LoginRequest {
-    username: String,
-    password: String,
-}
 
 impl HttpClient {
     pub async fn fetch_login(
@@ -19,11 +13,15 @@ impl HttpClient {
 
         let response = self
             .client
-            .get(format!("{}/api/user", self.base_url))
+            .post(format!("{}/api/register", self.base_url))
             .header("Content-Type", "application/json")
             .body(serde_json::to_string(&LoginRequest { username, password })?)
             .send()
             .await?;
+
+        let response_code = response.status().as_u16();
+
+        ensure!(response_code == 200, "Response code: {response_code}");
 
         Ok(response)
     }
