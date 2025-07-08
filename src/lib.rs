@@ -1,7 +1,9 @@
+use dioxus::prelude::Routable;
 use reqwest::Client;
-
+use dioxus::prelude::*;
 pub mod api_requests;
 pub mod ui;
+use crate::ui::{login::Login, register::Register, main_page::MainPage, not_found::NotFound};
 
 #[derive(Debug, Clone)]
 pub struct HttpClient {
@@ -19,4 +21,23 @@ impl HttpClient {
 pub struct LoginRequest {
     username: String,
     password: String,
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Debug)]
+pub struct RegisterRequest {
+    username: String,
+    password: String,
+    email: String,
+}
+
+#[derive(Routable, PartialEq, Clone)]
+pub enum Route {
+    #[route("/")]
+    Login {},
+    #[route("/register")]
+    Register {},
+    #[route("/chats")]
+    MainPage {},
+    #[route("/:..segments")]
+    NotFound { segments: Vec<String> },
 }

@@ -1,7 +1,7 @@
 use std::{format, path::PathBuf};
 
 use dioxus::prelude::*;
-use whatssock_desktop::ui::{login::Login, main_page::MainPage};
+use whatssock_desktop::{ui::{login::Login, main_page::MainPage, register::Register}, Route};
 
 const MAIN_CSS: Asset = asset!("/assets/main.css");
 
@@ -17,28 +17,6 @@ fn main() -> anyhow::Result<()> {
     dioxus::launch(App);
     
     Ok(())
-}
-
-#[derive(Routable, PartialEq, Clone)]
-enum Route {
-    #[route("/")]
-    Login {},
-    #[route("/chats")]
-    MainPage {},
-    #[route("/:..segments")]
-    NotFound { segments: Vec<String> },
-}
-
-#[component]
-fn NotFound(segments: Vec<String>) -> Element {
-    rsx! {
-        div {
-            id: "not_found_page",
-            {
-                format!(r#"Path "{:?}" is not found."#, segments)
-            }
-        }
-    }
 }
 
 #[component]
