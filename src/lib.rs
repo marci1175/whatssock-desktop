@@ -3,7 +3,8 @@ use reqwest::Client;
 use dioxus::prelude::*;
 pub mod api_requests;
 pub mod ui;
-use crate::ui::{login::Login, register::Register, main_page::MainPage, not_found::NotFound};
+pub mod authentication;
+use crate::{authentication::UserSession, ui::{login::Login, main_page::MainPage, not_found::NotFound, register::Register}};
 
 #[derive(Debug, Clone)]
 pub struct HttpClient {
@@ -37,7 +38,7 @@ pub enum Route {
     #[route("/register")]
     Register {},
     #[route("/chats")]
-    MainPage {},
+    MainPage { },
     #[route("/:..segments")]
     NotFound { segments: Vec<String> },
 }

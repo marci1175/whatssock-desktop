@@ -1,6 +1,6 @@
 use std::{fmt::Display, sync::Arc};
 
-use crate::HttpClient;
+use crate::{authentication::{auth::{deserialize_into_user_session, store_user_session_on_disk}, UserSession}, HttpClient};
 use dioxus::{logger::tracing, prelude::*};
 use parking_lot::Mutex;
 use reqwest::Client;
@@ -21,6 +21,7 @@ impl Display for AttemptResult {
     }
 }
 
+
 #[component]
 pub fn Login() -> Element {
     let client = Arc::new(Mutex::new(
@@ -35,9 +36,10 @@ pub fn Login() -> Element {
             }
         })
     ));
-
+    
+    let mut user_session_login: Signal<Option<UserSession>, SyncStorage> = use_signal_sync(|| None);
+    let navigator = use_navigator();
     let mut log_res: Signal<Option<AttemptResult>> = use_signal(|| None);
-
     let mut username = use_signal(String::new);
     let mut password = use_signal(String::new);
     rsx! {
@@ -72,7 +74,7 @@ pub fn Login() -> Element {
                         r#type: "password",
                     }
                 }
-
+                
                 button { onclick: move |_| {
                     // Update state
                     log_res.set(Some(AttemptResult::Attempted("Logging in...".to_string())));
@@ -83,10 +85,16 @@ pub fn Login() -> Element {
                     spawn(async move {
                         match client.lock().fetch_login(username.to_string(), password.to_string()).await {
                             Ok(response) => {
-                                tracing::info!("{}", response.text().await.unwrap());
+                                let user_session = deserialize_into_user_session(response.text().await.unwrap()).unwrap();
+
+                                tracing::info!("{:?}", &user_session);
+
+                                store_user_session_on_disk(&user_session, "user_session".into()).unwrap();
+
+                                user_session_login.set(Some(user_session));
 
                                 // Update state
-                                log_res.set(Some(AttemptResult::Succeeded("Login Successful!".to_string())));
+                                log_res.set(Some(AttemptResult::Succeeded("Login Successful! Redirecting....".to_string())));
                             },
                             Err(err) => {
                                 tracing::error!("Error occured when logging in: {}", err.to_string());
@@ -106,7 +114,6 @@ pub fn Login() -> Element {
                 }
 
                 // Check if there is an existing error message
-
                 div {
                     id: "login_result",
                     {
@@ -148,6 +155,14 @@ pub fn Login() -> Element {
                         else {
                             rsx!()
                         }
+                    }
+                }
+                
+                // Check if we have logged in
+                {
+                    if let Some(user_session) = user_session_login.read().clone() {
+                        provide_root_context(user_session);
+                        navigator.push(crate::Route::MainPage { });
                     }
                 }
             }

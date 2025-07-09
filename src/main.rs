@@ -1,7 +1,7 @@
 use std::{format, path::PathBuf};
 
 use dioxus::prelude::*;
-use whatssock_desktop::{ui::{login::Login, main_page::MainPage, register::Register}, Route};
+use whatssock_desktop::Route;
 
 const MAIN_CSS: Asset = asset!("/assets/main.css");
 
