@@ -2,11 +2,22 @@ body {
     background-color: #000000;
     color: #a3a3a3;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    margin: 20px;
+    margin: 0px;
+    padding: 0px;
     background-image: 
     linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px);
   background-size: 40px 40px;
+}
+
+.title {
+  text-shadow:
+    0 0 5px rgba(120, 120, 120, 0.9),
+    0 0 10px rgba(120, 120, 120, 0.9),
+    0 0 20px rgba(120, 120, 120, 0.2);
+  animation-name: dehovered_title;
+  animation-duration: 300ms;
+  animation-fill-mode: backwards;
 }
 
 #login_page_container {
@@ -14,18 +25,12 @@ body {
 }
 
 #main_title {
-  text-align: center;
-  text-shadow:
-    0 0 5px rgba(120, 120, 120, 0.9),
-    0 0 10px rgba(120, 120, 120, 0.9),
-    0 0 20px rgba(120, 120, 120, 0.2);
+  margin-top: 30px;
   font-size: xx-large;
-  animation-name: dehovered_title;
-  animation-duration: 300ms;
-  animation-fill-mode: backwards;
+  text-align: center;
 }
 
-#main_title:hover {
+.title:hover {
   animation-name: hovered_title;
   animation-duration: 300ms;
   animation-fill-mode: forwards;
@@ -98,7 +103,7 @@ button:active {
   color: rgba(255, 255, 255, 0.8);
 }
 
-input:hover, input:hover, button:hover {
+input:hover, button:hover {
   animation-name: selected_input;
   animation-duration: 300ms;
   animation-fill-mode: forwards;
@@ -152,4 +157,47 @@ input:hover, input:hover, button:hover {
   }
 }
 
+.sidepanel {
+  color: white;
+  height: 100vh;
+  width: max-content;
+  padding-top: 10px;
+  box-sizing: border-box;
+  z-index: 1;
+  top: 0;
+  overflow-x: hidden;
+}
 
+#sidepanel_left {
+  float: left;
+  text-align: left;
+  border-right:  1px solid #a3a3a3;
+  background-color: #000000;
+}
+
+#chatpanel {
+  float: left;
+  text-align: left;
+}
+
+#sidepanel_title {
+  padding: 0px 10px 10px 10px;
+  border-bottom: 1px solid #a3a3a3;
+}
+
+#chat_entry_title {
+  display: grid;
+  grid-auto-flow: column;
+  font-size: x-small;
+}
+
+#chat_entry_list {
+  display: flex;
+  flex-direction: column;
+}
+
+#chat_entry {
+  border-top: 1px solid #a3a3a3;
+  border-bottom: 1px solid #a3a3a3;
+  padding: 0px 10px 10px 10px;
+}

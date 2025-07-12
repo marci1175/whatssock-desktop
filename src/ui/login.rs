@@ -51,6 +51,7 @@ pub fn Login() -> Element {
             id: "login_page_container",
             div {
                 id: "main_title",
+                class: "title",
                 "Whatssock"
             }
 
