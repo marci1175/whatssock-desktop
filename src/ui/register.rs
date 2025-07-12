@@ -1,6 +1,12 @@
 use std::{fmt::Display, sync::Arc};
 
-use crate::HttpClient;
+use crate::{
+    authentication::{
+        auth::{deserialize_into_user_session, store_user_session_on_disk},
+        UserSession,
+    },
+    HttpClient, Route, COOKIE_SAVE_PATH,
+};
 use dioxus::{logger::tracing, prelude::*};
 use parking_lot::Mutex;
 use reqwest::{Client, StatusCode};
@@ -23,26 +29,21 @@ impl Display for AttemptResult {
 
 #[component]
 pub fn Register() -> Element {
-    let client = Arc::new(Mutex::new(
-        HttpClient::new(Client::new(), {
-            #[cfg(debug_assertions)]
-            {
-                String::from("http://[::1]:3004")
-            }
-            #[cfg(not(debug_assertions))]
-            {
-                String::from("http://whatssock.com")
-            }
-        })
-    ));
+    let navigator = navigator();
 
+    let client = use_context::<Arc<Mutex<HttpClient>>>();
     let mut log_res: Signal<Option<AttemptResult>> = use_signal(|| None);
-
+    let mut user_session_login: Signal<Option<UserSession>, SyncStorage> = use_signal_sync(|| None);
     let mut username = use_signal(String::new);
     let mut password = use_signal(String::new);
     let mut email = use_signal(String::new);
 
     rsx! {
+        div {
+            id: "main_title",
+            "Create a Whatssock account"
+        }
+
         div {
             id: "register_page_container",
             div {
@@ -83,10 +84,14 @@ pub fn Register() -> Element {
                     spawn(async move {
                         match client.lock().send_register_request(username.to_string(), password.to_string(), email.to_string()).await {
                             Ok(response) => {
-                                tracing::info!("{}", response.text().await.unwrap());
+                                let user_session = deserialize_into_user_session(response.text().await.unwrap()).unwrap();
 
                                 // Update state
-                                log_res.set(Some(AttemptResult::Succeeded("Register Successful!".to_string())));
+                                log_res.set(Some(AttemptResult::Succeeded("Register Successful! Redirecting....".to_string())));
+
+                                user_session_login.set(Some(user_session.clone()));
+
+                                store_user_session_on_disk(&user_session, (*COOKIE_SAVE_PATH).clone()).unwrap();
                             },
                             Err(err) => {
                                 tracing::error!("Error occured when registering: {}", err.to_string());
@@ -140,6 +145,14 @@ pub fn Register() -> Element {
                         else {
                             rsx!()
                         }
+                    }
+                }
+
+                // Check if we have logged in
+                {
+                    if let Some(user_session) = user_session_login.read().clone() {
+                        provide_root_context(user_session);
+                        navigator.push(crate::Route::MainPage { });
                     }
                 }
             }

@@ -427,8 +427,10 @@ checksum = "c469d952047f47f91b68d1cba3f10d63c11d73e4636f24f08daf0278abf01c4d"
 dependencies = [
  "android-tzdata",
  "iana-time-zone",
+ "js-sys",
  "num-traits",
  "serde",
+ "wasm-bindgen",
  "windows-link",
 ]
 
@@ -1265,6 +1267,17 @@ dependencies = [
  "rustc-hash",
  "tracing",
  "warnings",
+]
+
+[[package]]
+name = "dioxus-toast"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1c424116e781a685f2e0ff3f290a509d7746688b619bb342a753063e1d81bc6a"
+dependencies = [
+ "chrono",
+ "dioxus",
+ "tokio",
 ]
 
 [[package]]
@@ -5342,6 +5355,8 @@ dependencies = [
  "anyhow",
  "chacha20poly1305",
  "dioxus",
+ "dioxus-toast",
+ "dirs",
  "machineid-rs",
  "mid",
  "parking_lot",

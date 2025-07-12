@@ -1,9 +1,15 @@
 use std::{fmt::Display, sync::Arc};
 
-use crate::{authentication::{auth::{deserialize_into_user_session, store_user_session_on_disk}, UserSession}, HttpClient};
+use crate::{
+    authentication::{
+        auth::{deserialize_into_user_session, store_user_session_on_disk},
+        UserSession,
+    },
+    HttpClient, Route, COOKIE_SAVE_PATH,
+};
 use dioxus::{logger::tracing, prelude::*};
 use parking_lot::Mutex;
-use reqwest::Client;
+use reqwest::{Client, Response};
 
 enum AttemptResult {
     Attempted(String),
@@ -21,28 +27,26 @@ impl Display for AttemptResult {
     }
 }
 
-
 #[component]
 pub fn Login() -> Element {
-    let client = Arc::new(Mutex::new(
-        HttpClient::new(Client::new(), {
-            #[cfg(debug_assertions)]
-            {
-                String::from("http://[::1]:3004")
-            }
-            #[cfg(not(debug_assertions))]
-            {
-                String::from("http://whatssock.com")
-            }
-        })
-    ));
-    
-    let mut user_session_login: Signal<Option<UserSession>, SyncStorage> = use_signal_sync(|| None);
     let navigator = use_navigator();
+    let valid_token_redirect = use_context::<Signal<Option<(UserSession, Arc<Response>)>>>();
+
+    let client = use_context::<Arc<Mutex<HttpClient>>>();
+    let mut user_session_login: Signal<Option<UserSession>, SyncStorage> = use_signal_sync(|| None);
     let mut log_res: Signal<Option<AttemptResult>> = use_signal(|| None);
     let mut username = use_signal(String::new);
     let mut password = use_signal(String::new);
     rsx! {
+        {
+            if let Some((valid_session, endpoint_response)) = valid_token_redirect.read().clone() {
+                // Add the UserSession to the context
+                use_root_context(|| valid_session);
+
+                navigator.push(Route::MainPage {  });
+            }
+        }
+
         div {
             id: "login_page_container",
             div {
@@ -74,7 +78,7 @@ pub fn Login() -> Element {
                         r#type: "password",
                     }
                 }
-                
+
                 button { onclick: move |_| {
                     // Update state
                     log_res.set(Some(AttemptResult::Attempted("Logging in...".to_string())));
@@ -89,9 +93,9 @@ pub fn Login() -> Element {
 
                                 tracing::info!("{:?}", &user_session);
 
-                                store_user_session_on_disk(&user_session, "user_session".into()).unwrap();
+                                user_session_login.set(Some(user_session.clone()));
 
-                                user_session_login.set(Some(user_session));
+                                store_user_session_on_disk(&user_session, (*COOKIE_SAVE_PATH).clone()).unwrap();
 
                                 // Update state
                                 log_res.set(Some(AttemptResult::Succeeded("Login Successful! Redirecting....".to_string())));
@@ -109,7 +113,7 @@ pub fn Login() -> Element {
                 li {
                     Link {
                         to: crate::Route::Register {  },
-                        "Not registered now?",
+                        "Not registered?",
                     },
                 }
 
@@ -157,7 +161,7 @@ pub fn Login() -> Element {
                         }
                     }
                 }
-                
+
                 // Check if we have logged in
                 {
                     if let Some(user_session) = user_session_login.read().clone() {
