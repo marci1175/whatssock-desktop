@@ -74,7 +74,7 @@ pub fn Register() -> Element {
                     }
                 }
 
-                button { onclick: move |_| {
+                button { id: "ui_button", onclick: move |_| {
                     // Update state
                     log_res.set(Some(AttemptResult::Attempted("Registering...".to_string())));
 

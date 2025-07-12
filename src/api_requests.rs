@@ -64,6 +64,10 @@ impl HttpClient {
             .send()
             .await?;
 
+        let response_code = response.status().as_u16();
+
+        ensure!(response_code == 200, "Response code: {response_code}");
+
         Ok(response)
     }
 }

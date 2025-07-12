@@ -12,8 +12,7 @@ use whatssock_desktop::{
     authentication::{
         auth::{create_hwid_key, decrypt_bytes},
         UserSession,
-    },
-    HttpClient, Route, COOKIE_SAVE_PATH,
+    }, HttpClient, Route, UserInformation, COOKIE_SAVE_PATH
 };
 
 const MAIN_CSS: Asset = asset!("/assets/main.css");
@@ -63,9 +62,9 @@ fn init_application() -> Element {
     })));
 
     let server_sender_clone = server_sender.clone();
-    let mut log_res: Signal<Option<(Arc<Response>, UserSession)>> = use_signal(|| None);
+    let mut log_res: Signal<Option<(UserSession, UserInformation)>> = use_signal(|| None);
 
-    use_root_context::<Signal<Option<(UserSession, Arc<Response>)>>>(|| Signal::new(None));
+    use_root_context::<Signal<Option<(UserSession, UserInformation)>>>(|| Signal::new(None));
     use_root_context(|| server_sender_clone);
 
     if let Ok(encrypted_bytes) = fs::read(&*COOKIE_SAVE_PATH) {
@@ -83,7 +82,9 @@ fn init_application() -> Element {
                         .await
                     {
                         Ok(response) => {
-                            log_res.set(Some((Arc::new(response), user_session)));
+                            let user_information = serde_json::from_str::<UserInformation>(&response.text().await.unwrap()).unwrap();
+
+                            log_res.set(Some((user_session, user_information)));
                         }
                         Err(err) => {
                             error!("{err}");
@@ -98,9 +99,9 @@ fn init_application() -> Element {
     }
 
     use_effect(move || {
-        if let Some((response, user_session)) = (*log_res.read()).clone() {
-            let mut session = use_context::<Signal<Option<(UserSession, Arc<Response>)>>>();
-            session.set(Some((user_session.clone(), response.clone())));
+        if let Some(active_session) = (*log_res.read()).clone() {
+            let mut session = use_context::<Signal<Option<(UserSession, UserInformation)>>>();
+            session.set(Some(active_session));
         }
     });
 

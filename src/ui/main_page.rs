@@ -1,6 +1,6 @@
 use dioxus::prelude::*;
 
-use crate::authentication::UserSession;
+use crate::{authentication::UserSession, UserInformation};
 
 #[derive(Debug, Clone, serde::Deserialize, serde::Serialize)]
 pub struct ChatEntry {
@@ -28,7 +28,8 @@ impl ChatEntry {
 
 #[component]
 pub fn MainPage() -> Element {
-    let user_session = use_context::<UserSession>();
+    let (user_session, user_information) = use_context::<(UserSession, UserInformation)>();
+
     let mut user_chat_entries: Signal<Vec<ChatEntry>> = use_signal(|| {
         Vec::new()
     });
@@ -84,7 +85,6 @@ pub fn MainPage() -> Element {
                     }
 
                     div {
-                        class: "title",
                         id: "chat_entry_title",
 
                         div {
@@ -107,6 +107,18 @@ pub fn MainPage() -> Element {
                     }
                 }
             }
+            }
+        
+            div {
+                id: "user_control_panel_area",
+
+                {
+                    format!("Logged in as: {}", user_information.username)
+                }
+
+                button {
+                    "Control"
+                }
             }
         }
 
