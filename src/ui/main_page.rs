@@ -1,6 +1,10 @@
-use dioxus::prelude::*;
+use std::sync::Arc;
 
-use crate::{authentication::UserSession, UserInformation};
+use dioxus::prelude::*;
+use dioxus_toast::{ToastInfo, ToastManager};
+use parking_lot::Mutex;
+
+use crate::{authentication::UserSession, HttpClient, Route, UserInformation};
 
 #[derive(Debug, Clone, serde::Deserialize, serde::Serialize)]
 pub struct ChatEntry {
@@ -29,37 +33,60 @@ impl ChatEntry {
 #[component]
 pub fn MainPage() -> Element {
     let (user_session, user_information) = use_context::<(UserSession, UserInformation)>();
-
-    let mut user_chat_entries: Signal<Vec<ChatEntry>> = use_signal(|| {
-        Vec::new()
-    });
-
+    let client = use_context::<Arc<Mutex<HttpClient>>>();
+    let mut navigator = navigator();
+    let mut user_chat_entries: Signal<Vec<ChatEntry>> = use_signal(|| Vec::new());
+    let mut toast: Signal<ToastManager> = use_context();
     user_chat_entries.set(vec![
-            ChatEntry::new(
-                "Muslincák".to_string(),
-                "marci: kurva anyad".to_string(),
-                chrono::Local::now().date_naive(),
-                "channel_icon_url".to_string(),
-            ),
-            ChatEntry::new(
-                "Muslincák".to_string(),
-                "marci: kurva anyad".to_string(),
-                chrono::Local::now().date_naive(),
-                "channel_icon_url".to_string(),
-            ),
-            ChatEntry::new(
-                "Muslincák".to_string(),
-                "marci: kurva anyad".to_string(),
-                chrono::Local::now().date_naive(),
-                "channel_icon_url".to_string(),
-            ),
-            ChatEntry::new(
-                "Muslincák".to_string(),
-                "marci: kurva anyad".to_string(),
-                chrono::Local::now().date_naive(),
-                "channel_icon_url".to_string(),
-            ),
-        ]);
+        ChatEntry::new(
+            "Muslincák".to_string(),
+            "marci: kurva anyad".to_string(),
+            chrono::Local::now().date_naive(),
+            "channel_icon_url".to_string(),
+        ),
+        ChatEntry::new(
+            "Muslincák".to_string(),
+            "marci: kurva anyad".to_string(),
+            chrono::Local::now().date_naive(),
+            "channel_icon_url".to_string(),
+        ),
+        ChatEntry::new(
+            "Muslincák".to_string(),
+            "marci: kurva anyad".to_string(),
+            chrono::Local::now().date_naive(),
+            "channel_icon_url".to_string(),
+        ),
+        ChatEntry::new(
+            "Muslincák".to_string(),
+            "marci: kurva anyad".to_string(),
+            chrono::Local::now().date_naive(),
+            "channel_icon_url".to_string(),
+        ),
+        ChatEntry::new(
+            "Muslincák".to_string(),
+            "marci: kurva anyad".to_string(),
+            chrono::Local::now().date_naive(),
+            "channel_icon_url".to_string(),
+        ),
+        ChatEntry::new(
+            "Muslincák".to_string(),
+            "marci: kurva anyad".to_string(),
+            chrono::Local::now().date_naive(),
+            "channel_icon_url".to_string(),
+        ),
+        ChatEntry::new(
+            "Muslincák".to_string(),
+            "marci: kurva anyad".to_string(),
+            chrono::Local::now().date_naive(),
+            "channel_icon_url".to_string(),
+        ),
+        ChatEntry::new(
+            "Muslincák".to_string(),
+            "marci: kurva anyad".to_string(),
+            chrono::Local::now().date_naive(),
+            "channel_icon_url".to_string(),
+        ),
+    ]);
 
     rsx! {
         div {
@@ -108,16 +135,37 @@ pub fn MainPage() -> Element {
                 }
             }
             }
-        
+            
             div {
                 id: "user_control_panel_area",
-
                 {
                     format!("Logged in as: {}", user_information.username)
                 }
 
-                button {
-                    "Control"
+                div {
+                    id: "user_control_panel_buttons",
+                    button {
+                        id: "user_control_panel_button",
+                        "Settings"
+                    }
+                    
+                    button {
+                        id: "user_control_panel_button",
+                        onclick: move |_event| {
+                            let client = client.clone();
+                            let user_session = user_session.clone();
+
+                            spawn(async move {
+                                client.lock().request_logout(user_session.clone()).await.unwrap();
+                            });
+                            
+                            toast.write().popup(ToastInfo::simple("Successfully logged out!"));
+                            
+                            navigator.replace(Route::Login {  });
+                        },
+
+                        "Logout"
+                    }
                 }
             }
         }

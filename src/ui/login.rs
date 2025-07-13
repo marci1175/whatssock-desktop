@@ -4,11 +4,11 @@ use crate::{
     authentication::{
         auth::{deserialize_into_user_session, store_user_session_on_disk},
         UserSession,
-    }, HttpClient, Route, UserInformation, COOKIE_SAVE_PATH
+    },
+    HttpClient, Route, UserInformation, COOKIE_SAVE_PATH,
 };
 use dioxus::{logger::tracing, prelude::*};
 use parking_lot::Mutex;
-use reqwest::{Client, Response};
 
 enum AttemptResult {
     Attempted(String),
@@ -32,7 +32,8 @@ pub fn Login() -> Element {
     let valid_token_redirect = use_context::<Signal<Option<(UserSession, UserInformation)>>>();
 
     let client = use_context::<Arc<Mutex<HttpClient>>>();
-    let mut user_session_login: Signal<Option<(UserSession, UserInformation)>, SyncStorage> = use_signal_sync(|| None);
+    let mut user_session_login: Signal<Option<(UserSession, UserInformation)>, SyncStorage> =
+        use_signal_sync(|| None);
     let mut log_res: Signal<Option<AttemptResult>> = use_signal(|| None);
     let mut username = use_signal(String::new);
     let mut password = use_signal(String::new);
@@ -41,7 +42,7 @@ pub fn Login() -> Element {
             if let Some(valid_session) = valid_token_redirect.read().clone() {
                 // Add the UserSession to the context
                 use_root_context(|| valid_session);
-                
+
                 navigator.push(Route::MainPage {  });
             }
         }
@@ -112,7 +113,7 @@ pub fn Login() -> Element {
                                     }
                                 };
 
-                                
+
                                 store_user_session_on_disk(&user_session, (*COOKIE_SAVE_PATH).clone()).unwrap();
 
                                 // Update state

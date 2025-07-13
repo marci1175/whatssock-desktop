@@ -5,6 +5,7 @@ use std::{
 };
 
 use dioxus::{logger::tracing::error, prelude::*};
+use dioxus_toast::{ToastFrame, ToastManager};
 use dirs::data_local_dir;
 use parking_lot::Mutex;
 use reqwest::{Client, Response};
@@ -12,7 +13,8 @@ use whatssock_desktop::{
     authentication::{
         auth::{create_hwid_key, decrypt_bytes},
         UserSession,
-    }, HttpClient, Route, UserInformation, COOKIE_SAVE_PATH
+    },
+    HttpClient, Route, UserInformation, COOKIE_SAVE_PATH,
 };
 
 const MAIN_CSS: Asset = asset!("/assets/main.css");
@@ -36,7 +38,12 @@ fn main() -> anyhow::Result<()> {
 
 #[component]
 fn App() -> Element {
+    let toast = use_context_provider(|| Signal::new(ToastManager::default()));
+    
     rsx! {
+        ToastFrame {
+            manager: toast,
+        }
         Router::<Route> {}
         {
             init_application()
@@ -82,7 +89,10 @@ fn init_application() -> Element {
                         .await
                     {
                         Ok(response) => {
-                            let user_information = serde_json::from_str::<UserInformation>(&response.text().await.unwrap()).unwrap();
+                            let user_information = serde_json::from_str::<UserInformation>(
+                                &response.text().await.unwrap(),
+                            )
+                            .unwrap();
 
                             log_res.set(Some((user_session, user_information)));
                         }

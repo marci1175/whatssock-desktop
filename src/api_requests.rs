@@ -70,4 +70,20 @@ impl HttpClient {
 
         Ok(response)
     }
+
+    pub async fn request_logout(&self, user_sesion: UserSession) -> anyhow::Result<Response> {
+        let response = self
+            .client
+            .post(format!("{}/api/logout", self.base_url))
+            .header("Content-Type", "application/json")
+            .body(serde_json::to_string(&user_sesion)?)
+            .send()
+            .await?;
+
+        let response_code = response.status().as_u16();
+
+        ensure!(response_code == 200, "Response code: {response_code}");
+
+        Ok(response)
+    }
 }
