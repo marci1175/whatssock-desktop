@@ -41,6 +41,7 @@ pub fn Register() -> Element {
     rsx! {
         div {
             id: "main_title",
+            class: "title",
             "Create a Whatssock account"
         }
 
@@ -74,7 +75,7 @@ pub fn Register() -> Element {
                     }
                 }
 
-                button { id: "ui_button", onclick: move |_| {
+                button { id: "ui_button", class: "button", onclick: move |_| {
                     // Update state
                     log_res.set(Some(AttemptResult::Attempted("Registering...".to_string())));
 

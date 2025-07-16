@@ -80,7 +80,7 @@ pub fn Login() -> Element {
                     }
                 }
 
-                button { id: "ui_button", onclick: move |_| {
+                button { id: "ui_button", class: "button", onclick: move |_| {
                     // Update state
                     log_res.set(Some(AttemptResult::Attempted("Logging in...".to_string())));
 

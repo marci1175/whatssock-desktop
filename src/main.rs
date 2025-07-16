@@ -39,7 +39,7 @@ fn main() -> anyhow::Result<()> {
 #[component]
 fn App() -> Element {
     let toast = use_context_provider(|| Signal::new(ToastManager::default()));
-    
+
     rsx! {
         ToastFrame {
             manager: toast,

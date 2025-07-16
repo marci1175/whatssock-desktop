@@ -4,89 +4,28 @@ use dioxus::prelude::*;
 use dioxus_toast::{ToastInfo, ToastManager};
 use parking_lot::Mutex;
 
-use crate::{authentication::UserSession, HttpClient, Route, UserInformation};
+use crate::{
+    authentication::{FetchChatroomRequest, FetchChatroomResponse, UserSession},
+    HttpClient, Route, UserInformation,
+};
 
-#[derive(Debug, Clone, serde::Deserialize, serde::Serialize)]
-pub struct ChatEntry {
-    title: String,
-    last_message: String,
-    last_message_date: chrono::NaiveDate,
-    channel_icon_url: String,
-}
-
-impl ChatEntry {
-    pub fn new(
-        title: String,
-        last_message: String,
-        last_message_date: chrono::NaiveDate,
-        channel_icon_url: String,
-    ) -> Self {
-        Self {
-            title,
-            last_message,
-            last_message_date,
-            channel_icon_url,
-        }
-    }
-}
 
 #[component]
 pub fn MainPage() -> Element {
     let (user_session, user_information) = use_context::<(UserSession, UserInformation)>();
-    let client = use_context::<Arc<Mutex<HttpClient>>>();
-    let mut navigator = navigator();
-    let mut user_chat_entries: Signal<Vec<ChatEntry>> = use_signal(|| Vec::new());
     let mut toast: Signal<ToastManager> = use_context();
-    user_chat_entries.set(vec![
-        ChatEntry::new(
-            "Muslincák".to_string(),
-            "marci: kurva anyad".to_string(),
-            chrono::Local::now().date_naive(),
-            "channel_icon_url".to_string(),
-        ),
-        ChatEntry::new(
-            "Muslincák".to_string(),
-            "marci: kurva anyad".to_string(),
-            chrono::Local::now().date_naive(),
-            "channel_icon_url".to_string(),
-        ),
-        ChatEntry::new(
-            "Muslincák".to_string(),
-            "marci: kurva anyad".to_string(),
-            chrono::Local::now().date_naive(),
-            "channel_icon_url".to_string(),
-        ),
-        ChatEntry::new(
-            "Muslincák".to_string(),
-            "marci: kurva anyad".to_string(),
-            chrono::Local::now().date_naive(),
-            "channel_icon_url".to_string(),
-        ),
-        ChatEntry::new(
-            "Muslincák".to_string(),
-            "marci: kurva anyad".to_string(),
-            chrono::Local::now().date_naive(),
-            "channel_icon_url".to_string(),
-        ),
-        ChatEntry::new(
-            "Muslincák".to_string(),
-            "marci: kurva anyad".to_string(),
-            chrono::Local::now().date_naive(),
-            "channel_icon_url".to_string(),
-        ),
-        ChatEntry::new(
-            "Muslincák".to_string(),
-            "marci: kurva anyad".to_string(),
-            chrono::Local::now().date_naive(),
-            "channel_icon_url".to_string(),
-        ),
-        ChatEntry::new(
-            "Muslincák".to_string(),
-            "marci: kurva anyad".to_string(),
-            chrono::Local::now().date_naive(),
-            "channel_icon_url".to_string(),
-        ),
-    ]);
+
+    let user_session = Arc::new(user_session);
+    let user_session_clone = user_session.clone();
+
+    let client = use_context::<Arc<Mutex<HttpClient>>>();
+    let client_clone = client.clone();
+
+    let navigator = navigator();
+    let mut user_chat_entries: Signal<Vec<FetchChatroomResponse>> = use_signal(|| Vec::new());
+
+    let mut chatroom_id_buffer = use_signal(|| String::new());
+    let mut chatroom_passw_buffer = use_signal(|| String::new());
 
     rsx! {
         div {
@@ -102,40 +41,40 @@ pub fn MainPage() -> Element {
             div {
                 id: "chat_entry_list",
 
-                for chat_entry in dbg!(user_chat_entries()) {
-                button {
-                    id: "chat_entry",
-
-                    div {
-                        id: "chat_icon",
-                        img {}
-                    }
-
-                    div {
-                        id: "chat_entry_title",
+                for chat_entry in user_chat_entries.read().clone() {
+                    button {
+                        id: "chat_entry",
 
                         div {
-                            {
-                                chat_entry.title
-                            }
+                            id: "chat_icon",
+                            img {}
                         }
 
-                        div { {
-                            chat_entry.last_message_date.to_string()
-                        } }
-                    }
+                        div {
+                            id: "chat_entry_title",
 
-                    div {
-                        id: "chat_entry_last_message",
+                            div {
+                                {
+                                    chat_entry.chatroom_name
+                                }
+                            }
 
-                        {
-                            chat_entry.last_message
+                            // div { {
+                            //     chat_entry.last_message_date.to_string()
+                            // } }
+                        }
+
+                        div {
+                            id: "chat_entry_last_message",
+
+                            {
+                                format!("{:?}", chat_entry.last_message_id)
+                            }
                         }
                     }
                 }
             }
-            }
-            
+
             div {
                 id: "user_control_panel_area",
                 {
@@ -148,7 +87,7 @@ pub fn MainPage() -> Element {
                         id: "user_control_panel_button",
                         "Settings"
                     }
-                    
+
                     button {
                         id: "user_control_panel_button",
                         onclick: move |_event| {
@@ -156,19 +95,71 @@ pub fn MainPage() -> Element {
                             let user_session = user_session.clone();
 
                             spawn(async move {
+                                // Send the logout request
                                 client.lock().request_logout(user_session.clone()).await.unwrap();
+
+                                // Reset root ctx for the session
+                                let mut session_ctx = use_context::<Signal<Option<(UserSession, UserInformation)>>>();
+                                session_ctx.set(None);
+
+                                navigator.replace(Route::Login {  });
+
+                                // Push the notification
+                                toast.write().popup(ToastInfo::simple("Successfully logged out!"));
                             });
-                            
-                            toast.write().popup(ToastInfo::simple("Successfully logged out!"));
-                            
-                            navigator.replace(Route::Login {  });
                         },
 
                         "Logout"
                     }
+                div {
+                "Add a new chat!"
+            }
+            div {
+                id: "chat_id_input_row",
+
+                button {
+                    id: "new_chat_button",
+                    class: "button",
+                    onclick: move |_| {
+                        let client = client_clone.clone();
+                        let user_session = user_session_clone.clone();
+
+                        spawn(async move {
+                            let response = client.lock().fetch_chatroom_id(FetchChatroomRequest { user_session: (*user_session).clone(), chatroom_id: chatroom_id_buffer.to_string(), password: {
+                                let passw_str = chatroom_passw_buffer.to_string();
+
+                                if passw_str.is_empty() {
+                                    None
+                                }
+                                else {
+                                    Some(passw_str)
+                                }
+                            } }).await.unwrap();
+
+                            let serialized_response = serde_json::from_str::<FetchChatroomResponse>(&response.text().await.unwrap()).unwrap();
+
+                            user_chat_entries.push(serialized_response);
+                        });
+                    },
+
+                    "+"
+                }
+                input {
+                    oninput: move |event| {
+                        chatroom_id_buffer.set(event.value());
+                    },
+                    placeholder: "Chat ID",
                 }
             }
+            input {
+                oninput: move |event| {
+                    chatroom_passw_buffer.set(event.value());
+                },
+                placeholder: "Chat Password",
+            }
         }
+    }
+    }
 
         div {
             class: "default_panel",

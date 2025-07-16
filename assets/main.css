@@ -75,7 +75,7 @@ label {
 }
 
 input,
-#ui_button {
+.button {
   border-radius: 8px;
   border: 1px solid transparent;
   padding: 0.3em 0.6em;
@@ -93,17 +93,17 @@ input,
   outline: none;
 }
 
-#ui_button {
+.button {
   color: rgba(255, 255, 255, 0.6);
   cursor: pointer;
   transition: color 0.1s ease;
 }
 
-#ui_button:active {
+.button:active {
   color: rgba(255, 255, 255, 0.8);
 }
 
-input:hover, #ui_button:hover {
+input:hover, .button:hover {
   animation-name: selected_input;
   animation-duration: 300ms;
   animation-fill-mode: forwards;
@@ -257,4 +257,16 @@ input:hover, #ui_button:hover {
 ::-webkit-scrollbar-thumb {
   background: #ffffff;
   border-radius: 10rem;
+}
+
+#new_chat_button {
+  color: #a3a3a3;
+  border: 0px transparent;
+  background-color: black;
+  font-size: large;
+}
+
+#chat_id_input_row {
+  display: flex;
+  flex-direction: row;
 }
