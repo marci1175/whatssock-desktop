@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use crate::{
-    authentication::{FetchChatroomRequest, UserSession},
+    authentication::{CreateChatroomRequest, FetchKnownChatrooms, FetchUnknownChatroom, UserSession},
     HttpClient, LoginRequest, RegisterRequest,
 };
 use anyhow::ensure;
@@ -92,15 +92,53 @@ impl HttpClient {
         Ok(response)
     }
 
-    pub async fn fetch_chatroom_id(
+    pub async fn fetch_unknown_chatroom(
         &self,
-        fetch_chatroom_request: FetchChatroomRequest,
+        fetch_chatroom_request: FetchUnknownChatroom,
     ) -> anyhow::Result<Response> {
         let response = self
             .client
-            .post(format!("{}/api/chatroom_id", self.base_url))
+            .post(format!("{}/api/request_unknown_chatroom", self.base_url))
             .header("Content-Type", "application/json")
             .body(serde_json::to_string(&fetch_chatroom_request)?)
+            .send()
+            .await?;
+
+        let response_code = response.status().as_u16();
+
+        ensure!(response_code == 200, "Response code: {response_code}");
+
+        Ok(response)
+    }
+
+    pub async fn fetch_known_chatrooms(
+        &self,
+        fetch_chatroom_request: FetchKnownChatrooms,
+    ) -> anyhow::Result<Response> {
+        let response = self
+            .client
+            .post(format!("{}/api/request_known_chatroom", self.base_url))
+            .header("Content-Type", "application/json")
+            .body(serde_json::to_string(&fetch_chatroom_request)?)
+            .send()
+            .await?;
+
+        let response_code = response.status().as_u16();
+
+        ensure!(response_code == 200, "Response code: {response_code}");
+
+        Ok(response)
+    }
+
+    pub async fn create_new_chatroom(
+        &self,
+        create_chatroom_request: CreateChatroomRequest,
+    ) -> anyhow::Result<Response> {
+        let response = self
+            .client
+            .post(format!("{}/api/chatroom_new", self.base_url))
+            .header("Content-Type", "application/json")
+            .body(serde_json::to_string(&create_chatroom_request)?)
             .send()
             .await?;
 

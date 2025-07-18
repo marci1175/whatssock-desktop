@@ -189,14 +189,14 @@ input:hover, .button:hover {
   justify-content: center
 }
 
-#chat_entry_title {
+#chatroom_node_title {
   display: grid;
   grid-auto-flow: column;
   font-size: x-small;
   color: inherit;
 }
 
-#chat_entry_list {
+#chatroom_node_list {
   height: 60vh;
   display: flex;
   flex-direction: column;
@@ -205,7 +205,7 @@ input:hover, .button:hover {
 }
 
 /* Sets the basic style for both the buttons and the chat entries in the sidepanel */
-#chat_entry, #user_control_panel_button {
+#chatroom_node, #user_control_panel_button {
   /* Disable basic button highlighting */
   border: 0px transparent;
   background-color: #000000;
@@ -215,10 +215,10 @@ input:hover, .button:hover {
   padding: 0px 10px 10px 10px;
   outline: none;
 }
-#chat_entry:hover, #user_control_panel_button:hover {
+#chatroom_node:hover, #user_control_panel_button:hover {
   background-color: #0f0f0f;
 }
-#chat_entry:active, #user_control_panel_button:active {
+#chatroom_node:active, #user_control_panel_button:active, #selected_chatroom_node {
   background-color: #1c1c1c;
   color: white;
 }
@@ -269,4 +269,18 @@ input:hover, .button:hover {
 #chat_id_input_row {
   display: flex;
   flex-direction: row;
+}
+
+.dropdown button {
+  display: inline-block;
+  cursor: pointer;
+}
+
+.dropdown .dropdown_content {
+  display: none;
+  position: absolute;
+}
+
+.dropdown:hover .dropdown_content {
+  display: block;
 }

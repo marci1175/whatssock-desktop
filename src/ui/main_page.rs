@@ -5,10 +5,9 @@ use dioxus_toast::{ToastInfo, ToastManager};
 use parking_lot::Mutex;
 
 use crate::{
-    authentication::{FetchChatroomRequest, FetchChatroomResponse, UserSession},
+    authentication::{FetchChatroomResponse, FetchKnownChatroomResponse, FetchKnownChatrooms, FetchUnknownChatroom, UserSession},
     HttpClient, Route, UserInformation,
 };
-
 
 #[component]
 pub fn MainPage() -> Element {
@@ -17,15 +16,38 @@ pub fn MainPage() -> Element {
 
     let user_session = Arc::new(user_session);
     let user_session_clone = user_session.clone();
+    let user_session_clone_create_chatroom = user_session.clone();
 
     let client = use_context::<Arc<Mutex<HttpClient>>>();
     let client_clone = client.clone();
+    let client_clone_add_chatroom = client.clone();
 
     let navigator = navigator();
     let mut user_chat_entries: Signal<Vec<FetchChatroomResponse>> = use_signal(|| Vec::new());
 
     let mut chatroom_id_buffer = use_signal(|| String::new());
+    let mut new_chatroom_name_buffer = use_signal(|| String::new());
     let mut chatroom_passw_buffer = use_signal(|| String::new());
+
+    let mut selected_chatroom_node_idx = use_signal(|| 0);
+
+    let chatrooms_joined = user_information.chatrooms_joined;
+    let client_chatroom_requester = client.clone();
+    let user_session_chatroom_req = user_session.clone();
+    
+    // Request all the chatrooms of the IDs which were included in the useraccount
+    use_hook(|| {
+        spawn(async move {
+        let client = client_chatroom_requester.lock();
+        let chatroom_ids: Vec<i32> = chatrooms_joined.iter().map(|id| id.unwrap()).collect();
+
+        let response = client.fetch_known_chatrooms(FetchKnownChatrooms { user_session: (*user_session_chatroom_req).clone(), chatroom_uids: chatroom_ids }).await.unwrap();
+
+        let verified_chatrooms = serde_json::from_str::<FetchKnownChatroomResponse>(&response.text().await.unwrap()).unwrap();
+
+        user_chat_entries.extend(dbg!(verified_chatrooms.chatrooms));
+        });
+    });
 
     rsx! {
         div {
@@ -39,11 +61,21 @@ pub fn MainPage() -> Element {
             }
 
             div {
-                id: "chat_entry_list",
+                id: "chatroom_node_list",
 
-                for chat_entry in user_chat_entries.read().clone() {
+                for (idx, chatroom_node) in user_chat_entries.read().iter().enumerate() {
                     button {
-                        id: "chat_entry",
+                        id: {
+                            if idx == *selected_chatroom_node_idx.read() {
+                                "chatroom_node"
+                            }
+                            else {
+                                "selected_chatroom_node"
+                            }
+                        },
+                        onclick: move |_| {
+                            selected_chatroom_node_idx.set(idx);
+                        },
 
                         div {
                             id: "chat_icon",
@@ -51,24 +83,20 @@ pub fn MainPage() -> Element {
                         }
 
                         div {
-                            id: "chat_entry_title",
+                            id: "chatroom_node_title",
 
                             div {
                                 {
-                                    chat_entry.chatroom_name
+                                    chatroom_node.chatroom_name.clone()
                                 }
                             }
-
-                            // div { {
-                            //     chat_entry.last_message_date.to_string()
-                            // } }
                         }
 
                         div {
-                            id: "chat_entry_last_message",
+                            id: "chatroom_node_last_message",
 
                             {
-                                format!("{:?}", chat_entry.last_message_id)
+                                format!("{:?}", chatroom_node.last_message_id)
                             }
                         }
                     }
@@ -112,50 +140,116 @@ pub fn MainPage() -> Element {
                         "Logout"
                     }
                 div {
-                "Add a new chat!"
             }
             div {
-                id: "chat_id_input_row",
-
-                button {
-                    id: "new_chat_button",
-                    class: "button",
-                    onclick: move |_| {
-                        let client = client_clone.clone();
-                        let user_session = user_session_clone.clone();
-
-                        spawn(async move {
-                            let response = client.lock().fetch_chatroom_id(FetchChatroomRequest { user_session: (*user_session).clone(), chatroom_id: chatroom_id_buffer.to_string(), password: {
-                                let passw_str = chatroom_passw_buffer.to_string();
-
-                                if passw_str.is_empty() {
-                                    None
-                                }
-                                else {
-                                    Some(passw_str)
-                                }
-                            } }).await.unwrap();
-
-                            let serialized_response = serde_json::from_str::<FetchChatroomResponse>(&response.text().await.unwrap()).unwrap();
-
-                            user_chat_entries.push(serialized_response);
-                        });
+                id: "chatroom_manager",
+                div {
+                    class: "dropdown",
+                    button {
+                        "Add a new chat!"
                     },
+                    div {
+                        class: "dropdown_content",
 
-                    "+"
+                        div {
+                            id: "chat_id_input_row",
+
+                            button {
+                                id: "new_chat_button",
+                                class: "button",
+                                onclick: move |_| {
+                                    let client = client_clone.clone();
+                                    let user_session = user_session_clone.clone();
+
+                                    spawn(async move {
+                                        let response = client.lock().fetch_unknown_chatroom(FetchUnknownChatroom { user_session: (*user_session).clone(), chatroom_id: chatroom_id_buffer.to_string(), password: {
+                                            let passw_str = chatroom_passw_buffer.to_string();
+
+                                            if passw_str.is_empty() {
+                                                None
+                                            }
+                                            else {
+                                                Some(passw_str)
+                                            }
+                                        } }).await.unwrap();
+
+                                        let serialized_response = serde_json::from_str::<FetchChatroomResponse>(&response.text().await.unwrap()).unwrap();
+
+                                        user_chat_entries.push(serialized_response);
+                                    });
+                                },
+
+                                "+"
+                            }
+                            input {
+                                oninput: move |event| {
+                                    chatroom_id_buffer.set(event.value());
+                                },
+                                placeholder: "Chat ID",
+                            }
+                        }
+                        input {
+                            id: "chatroom_password_input",
+                            r#type: "password",
+                            oninput: move |event| {
+                                chatroom_passw_buffer.set(event.value());
+                            },
+                            placeholder: "Chat Password",
+                        }
+                    }
                 }
-                input {
-                    oninput: move |event| {
-                        chatroom_id_buffer.set(event.value());
-                    },
-                    placeholder: "Chat ID",
+                div {
+                    class: "dropdown",
+                    button {
+                        "Create a new chatroom!"
+                    }
+                    div {
+                        class: "dropdown_content",
+
+                        div {
+                            id: "chat_id_input_row",
+                            button {
+                                class: "button",
+                                onclick: move |event| {
+                                    let client = client_clone_add_chatroom.clone();
+                                    let user_session_clone_create_chatroom = user_session_clone_create_chatroom.clone();
+
+                                    spawn(async move {
+                                        let response = client.lock().create_new_chatroom(crate::authentication::CreateChatroomRequest { chatroom_name: new_chatroom_name_buffer.to_string(), chatroom_passw: {
+                                            let entered_passw = chatroom_passw_buffer.to_string();
+                                            if entered_passw.is_empty() {
+                                                None
+                                            }
+                                            else {
+                                                Some(entered_passw)
+                                            }
+                                        }, user_session: (*user_session_clone_create_chatroom).clone() }).await.unwrap();
+
+                                        let added_chatroom = serde_json::from_str::<FetchChatroomResponse>(&response.text().await.unwrap()).unwrap();
+
+                                        user_chat_entries.push(added_chatroom);
+                                    });
+                                },
+                                "Create"
+                            }
+                            input {
+                                id: "create_chatroom_name_input",
+                                oninput: move |event| {
+                                    new_chatroom_name_buffer.set(event.value());
+                                },
+                                placeholder: "Chatroom name",
+                            }
+                            input {
+                                id: "chatroom_password_input",
+                                r#type: "password",
+                                oninput: move |event| {
+                                    chatroom_passw_buffer.set(event.value());
+                                },
+                                placeholder: "Chatroom Password",
+                            }
+                        }
+                    }
                 }
-            }
-            input {
-                oninput: move |event| {
-                    chatroom_passw_buffer.set(event.value());
-                },
-                placeholder: "Chat Password",
             }
         }
     }

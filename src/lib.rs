@@ -66,4 +66,5 @@ pub static COOKIE_SAVE_PATH: LazyLock<PathBuf> = LazyLock::new(|| {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 pub struct UserInformation {
     pub username: String,
+    pub chatrooms_joined: Vec<Option<i32>>,
 }
