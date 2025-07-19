@@ -1,7 +1,9 @@
 use std::sync::Arc;
 
 use crate::{
-    authentication::{CreateChatroomRequest, FetchKnownChatrooms, FetchUnknownChatroom, UserSession},
+    authentication::{
+        CreateChatroomRequest, FetchKnownChatrooms, FetchUnknownChatroom, UserSession,
+    },
     HttpClient, LoginRequest, RegisterRequest,
 };
 use anyhow::ensure;

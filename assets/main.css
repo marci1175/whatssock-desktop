@@ -157,7 +157,15 @@ input:hover, .button:hover {
   }
 }
 
+.window {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+}
+
 .sidepanel {
+  display: flex;
+  flex-direction: column;
   color: white;
   height: 100vh;
   width: auto;
@@ -169,17 +177,23 @@ input:hover, .button:hover {
 #sidepanel_left {
   float: left;
   text-align: left;
-  border-right:  1px solid #a3a3a3;
+  border-right: 1px solid #a3a3a3;
   background-color: #000000;
-  display: flex;
   flex-direction: column;
   justify-content: space-between;
-  height: 100vh;
 }
 
-#chatpanel {
-  float: left;
-  text-align: left;
+.chatpanel {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.bottompanel {
+  display: flex;
+  flex-direction: column;
+  margin-top: auto;
+  bottom: 0;
 }
 
 #sidepanel_title {
@@ -200,7 +214,7 @@ input:hover, .button:hover {
   height: 60vh;
   display: flex;
   flex-direction: column;
-    flex: 1 1 auto;
+  flex: 1 1 auto;
   overflow: overlay;
 }
 
@@ -222,17 +236,21 @@ input:hover, .button:hover {
   background-color: #1c1c1c;
   color: white;
 }
+#selected_chatroom_node {
+  border: 1px solid white;
+  background-color: #000000;
+  padding: 0px 10px 10px 10px;
+}
 
 /* The whole user control panel, including the "logged in as" */
 #user_control_panel_area {
+  display: flex;
   border-right: 1px solid #a3a3a3;
   border-top: 1px solid #a3a3a3;
   background-color: #000000;
-  display: flex;
   flex-direction: column;
   height: 40vh;
-  width: inherit;
-  margin-top: auto;
+  width: auto;
 }
 
 #user_control_panel_button {
@@ -279,8 +297,16 @@ input:hover, .button:hover {
 .dropdown .dropdown_content {
   display: none;
   position: absolute;
+  background-color: black;
+  outline: 1px white solid;
 }
 
 .dropdown:hover .dropdown_content {
   display: block;
+}
+
+#chat_input {
+  border-radius: 0px;
+  flex: 1;
+  height: 8%;
 }
